@@ -2,8 +2,10 @@ import express from "express";
 import expenseRoutes from "./routes/expenseRoutes.js";
 
 const app = express();
-
 const PORT = 8080;
+
+// Middleware för att parsa JSON i request body
+app.use(express.json());
 
 // Test route
 app.get("/", (req, res) => {
