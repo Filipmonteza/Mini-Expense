@@ -54,3 +54,13 @@ export const updateExpense = async (req: Request, res: Response) => {
 
     res.json(expense);
 }
+
+export const deleteExpense = async (req: Request, res: Response) => {
+    const id = Number(req.params.id);
+
+    await prisma.expense.delete({
+        where: { id },
+    });
+
+    res.status(204).end();
+}
