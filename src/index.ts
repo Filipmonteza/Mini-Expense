@@ -1,5 +1,6 @@
 import express from "express";
 import expenseRoutes from "./routes/expenseRoutes.js";
+import { errorHandler } from "./middleware/errorHandler.js";
 
 const app = express();
 const PORT = 8080;
@@ -16,6 +17,9 @@ app.get("/", (req, res) => {
 
 // Alla requests till /expenses skickas till expenseRoutes
 app.use("/expenses", expenseRoutes);
+
+// Central error handler
+app.use(errorHandler);
 
 // Starta servern
 app.listen(PORT, () => {

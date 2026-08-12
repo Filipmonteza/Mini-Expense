@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import prisma from "../lib/prisma.js";
+import { expenseSchema } from "../validators/expenseSchema.js";
 
 // Get all expenses
 export const getExpenses = async (req: Request, res: Response) => {
@@ -10,7 +11,17 @@ export const getExpenses = async (req: Request, res: Response) => {
 
 // Create a new expense
 export const createExpense = async (req: Request, res: Response) => {
-  const { title, amount, date } = req.body;
+ const result = expenseSchema.safeParse(req.body);
+
+  if (!result.success) {
+    return res.status(400).json({
+        message: "Invalid expense data",
+         error: result.error.issues 
+    
+        });
+    }
+
+    const { title, amount, date } = result.data;
 
   const expense = await prisma.expense.create({
     data: {
@@ -40,27 +51,54 @@ export const getExpenseById = async (req: Request, res: Response) => {
 
 // Update an expense by ID
 export const updateExpense = async (req: Request, res: Response) => {
+  try {
     const id = Number(req.params.id);
+
     const { title, amount, date } = req.body;
 
     const expense = await prisma.expense.update({
-        where: { id },
-        data: {
-            title,
-            amount,
-            date: new Date(date),
-        },
+      where: {
+        id
+      },
+      data: {
+        title,
+        amount,
+        date: new Date(date)
+      }
     });
 
     res.json(expense);
-}
+  } catch (error: any) {
+    if (error?.code === "P2025") {
+      return res.status(404).json({
+        message: "Expense not found"
+      });
+    }
+
+    throw error;
+  }
+};
 
 export const deleteExpense = async (req: Request, res: Response) => {
-    const id = Number(req.params.id);
+  const id = Number(req.params.id);
 
-    await prisma.expense.delete({
-        where: { id },
+  const expense = await prisma.expense.findUnique({
+    where: {
+      id
+    }
+  });
+
+  if (!expense) {
+    return res.status(404).json({
+      message: "Expense not found"
     });
+  }
 
-    res.status(204).end();
-}
+  await prisma.expense.delete({
+    where: {
+      id
+    }
+  });
+
+  res.status(204).send();
+};
