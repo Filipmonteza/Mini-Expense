@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import prisma from "../lib/prisma.js";
+import { expenseSchema } from "../validators/expenseSchema.js";
 
 // Get all expenses
 export const getExpenses = async (req: Request, res: Response) => {
@@ -10,7 +11,17 @@ export const getExpenses = async (req: Request, res: Response) => {
 
 // Create a new expense
 export const createExpense = async (req: Request, res: Response) => {
-  const { title, amount, date } = req.body;
+ const result = expenseSchema.safeParse(req.body);
+
+  if (!result.success) {
+    return res.status(400).json({
+        message: "Invalid expense data",
+         error: result.error.issues 
+    
+        });
+    }
+
+    const { title, amount, date } = result.data;
 
   const expense = await prisma.expense.create({
     data: {
