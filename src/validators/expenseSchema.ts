@@ -5,3 +5,5 @@ export const expenseSchema = z.object({
   amount: z.number().positive("Amount must be a positive number"),
   date: z.string().min(1, "Date is required")
 });
+
+export const updateExpenseSchema = expenseSchema.partial();
